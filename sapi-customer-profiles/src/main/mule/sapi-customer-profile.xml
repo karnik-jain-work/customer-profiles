@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd ">
+    
+    <flow name="sapi-customer-profile-main">
+        <http:listener config-ref="sapi-customer-profile-httpListenerConfig" path="/api/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:router config-ref="sapi-customer-profile-config" />
+        <error-handler ref="apikit-error-handler">
+        </error-handler>
+    </flow>
+    <flow name="sapi-customer-profile-console">
+        <http:listener config-ref="sapi-customer-profile-httpListenerConfig" path="/console/*">
+            <http:response statusCode="#[vars.httpStatus default 200]">
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:response>
+            <http:error-response statusCode="#[vars.httpStatus default 500]">
+                <http:body>#[payload]</http:body>
+                <http:headers>#[vars.outboundHeaders default {}]</http:headers>
+            </http:error-response>
+        </http:listener>
+        <apikit:console config-ref="sapi-customer-profile-config" />
+		<error-handler ref="apikit-error-handler" />
+    </flow>
+    <flow name="get:\get-updates:sapi-customer-profile-config" doc:id="bac8d1bc-ddb9-41ce-a3b4-6fe4ca35fed6">
+		<flow-ref doc:name="get-updates-subflow" doc:id="da38b3cd-cdae-4e2a-bb61-4840ab1ad7d8" name="get-updates-subflow"/>
+		<error-handler ref="http-error-handler" />
+    </flow>
+    <flow name="get:\ping:sapi-customer-profile-config">
+		<flow-ref doc:name="ping-subflow" doc:id="498e74ef-6337-41cf-8cee-156f4b6ea4ec" name="ping-subflow"/>
+		<error-handler ref="http-error-handler" />
+    </flow>
+    <flow name="post:\retrieve-data-by-id:application\json:sapi-customer-profile-config">
+		<flow-ref doc:name="retrieve-data-by-id-subflow" doc:id="43a8ec4a-c212-440a-ad9d-6ec2bd0493d6" name="retrieve-data-by-id-subflow"/>
+		<error-handler ref="http-error-handler" />
+    </flow>
+    <flow name="post:\retrieve-historical-changes:application\json:sapi-customer-profile-config">
+		<flow-ref doc:name="retrieve-historical-changes-sub-flow" doc:id="109cb929-f40f-4137-9876-2f5077da13d7" name="retrieve-historical-changes-sub-flow"/>
+		<error-handler ref="http-error-handler" />
+    </flow>
+</mule>

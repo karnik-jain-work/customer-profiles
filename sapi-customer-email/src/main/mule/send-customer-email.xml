@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+
+	<sub-flow name="send-customer-email-subflow" doc:id="6d7f43b8-aa17-488a-a5a3-0a1d81fe6bde" >
+		<logger level="INFO" doc:name="Start fetch-emp-profiles-flow" doc:id="98567b54-815e-4742-a66b-035a7a3e6892" message='"fetch-emp-profiles-flow ended : #[payload]"' />
+		<ee:transform doc:name="set email body" doc:id="f2830361-6eb8-4322-92c9-7d7cf2fdbbba" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output text/plain
+---
+read(payload,"text/plain")]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<email:send doc:id="edd610cc-bc35-4f92-a57d-ab2912f39693" config-ref="Email_SMTP" fromAddress="karnik3109@gmail.com" subject="#[attributes.queryParams.subject]">
+			<email:to-addresses >
+				<email:to-address value="#[attributes.queryParams.email]" />
+			</email:to-addresses>
+		</email:send>
+		<logger level="INFO" doc:name="end fetch-emp-profiles-flow" doc:id="c21dbee1-4bdd-47cc-81c8-846c2654d753" message='"fetch-emp-profiles-flow ended : #[payload]"' />
+	</sub-flow>
+</mule>

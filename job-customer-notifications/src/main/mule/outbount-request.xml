@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<sub-flow name="send-customer-email" doc:id="d355fea0-0784-412d-82d3-dd0eecb0cd14" >
+		<logger level="INFO" doc:name="startedsend-customer-email-subflow" doc:id="4b482456-4123-44cb-81db-23522b45ec58" message='"send-customer-email-subflow started : #[now()]"' />
+		<http:request method="POST" doc:name="Send customer email" doc:id="c27dc5c9-fdd8-4966-8570-6fcb1b80882e" config-ref="HTTP_Request_configuration_CustEmail" path="/send-customer-email">
+			<http:body><![CDATA[#[vars.emailBody]]]></http:body>
+			<http:query-params><![CDATA[#[{
+	"email": vars.receiverEmailId,
+	"subject": vars.emailSubject
+}]]]></http:query-params>
+		</http:request>
+		<logger level="INFO" doc:name="End send-customer-email-subflow" doc:id="fe30d392-c195-4325-b2b7-7ba58e324054" message='"send-customer-email-subflow Ended : #[payload]"' />
+	</sub-flow>
+	<sub-flow name="retrieve-data-by-id-subflow" doc:id="4e6c29c1-ff36-48a1-a6a7-505799efb573" >
+		<logger level="INFO" doc:name="started retrieve-data-by-id-subflow" doc:id="fddc281e-ee1b-47ca-99f4-14c80c3c0e50" message='"retrieve-data-by-id-subflow started : #[now()]"' />
+		<http:request method="POST" doc:name="HTTP:retrieve-data-by-id" doc:id="24713037-8a32-41ca-b1eb-5c37f7fb6bd4" config-ref="HTTP_Request_configuration_CustProfile" path="/retrieve-data-by-id" >
+		</http:request>
+		<logger level="INFO" doc:name="End retrieve-data-by-id-subflow" doc:id="a8542a2e-d4ab-4634-bbaf-57bff39370fd" message='"retrieve-data-by-id-subflow Ended : #[payload]"' />
+	</sub-flow>
+	<sub-flow name="retrieve-historical-changes-subflow" doc:id="31aa65ab-152e-456c-901b-b32d82e85ccc" >
+		<logger level="INFO" doc:name="started retrieve-historical-changes-subflow" doc:id="34229551-fc6e-409a-bb14-8a4471e6589e" message='"retrieve-historical-changes-subflow started : #[now()]"' />
+		<http:request method="POST" doc:name="HTTP: retrieve-historical-changes" doc:id="19a8a2ce-fc9f-4ff0-af22-e1de35a7cf00" config-ref="HTTP_Request_configuration_CustProfile" path="/retrieve-historical-changes" >
+		</http:request>
+		<logger level="INFO" doc:name="End retrieve-historical-changes-subflow" doc:id="ef8c6058-b417-4909-aca8-dec55f5b848d" message='"retrieve-historical-changes-subflow Ended : #[payload]"' />
+	</sub-flow>
+	<sub-flow name="get-updates-sf" doc:id="2d75330c-0e54-40f0-a91b-fe1719775a39" >
+		<logger level="INFO" doc:name="started schedular-job-flow" doc:id="737b2825-5168-4378-b093-8ec5c92553ac" message='"get-updates-subflow started : #[now()]"' />
+		<http:request method="GET" doc:name="get-updates" doc:id="cf856aaa-df72-4a75-8713-78a9f7cf4c59" config-ref="HTTP_Request_configuration_CustProfile" path="/get-updates">
+			<http:headers ><![CDATA[#[{
+	"currentDateTime": vars.currentTime,
+	"pastDateTime": vars.pastDateTime
+}]]]></http:headers>
+		</http:request>
+		<logger level="INFO" doc:name="End schedular-job-flow" doc:id="f5fafbf8-bf9f-407b-8728-a0a3c1a2b020" message='"get-updates-subflow Ended : #[payload]"' />
+	</sub-flow>
+</mule>

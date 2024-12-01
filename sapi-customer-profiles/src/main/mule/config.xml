@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:apikit="http://www.mulesoft.org/schema/mule/mule-apikit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation=" http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd  http://www.mulesoft.org/schema/mule/mule-apikit http://www.mulesoft.org/schema/mule/mule-apikit/current/mule-apikit.xsd  http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd">
+    <http:listener-config name="sapi-customer-profile-httpListenerConfig">
+        <http:listener-connection host="${http.host}" port="${http.port}" readTimeout="${http.readTimeout}"/>
+    </http:listener-config>
+	<apikit:config name="sapi-customer-profile-config" api="${apikit.api.location}" outboundHeadersMapName="outboundHeaders" httpStatusVarName="${apikit.httpStatusVarName}" /> 
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="531d0d22-741e-48fe-aca5-d8a1e70c1f91">
+        <salesforce:basic-connection username="${secure::salesforce.username}" password="${secure::salesforce.password}" securityToken="${secure::salesforce.securityToken}" />
+    </salesforce:sfdc-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="a71f2ef6-8b84-44bd-8705-b5171d2f9b8c" file="properties/${mule.env}.yaml" />
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="1331be04-ae0f-48c4-acd7-aae666fd05a8" file="properties/${mule.env}-secure.yaml" key="${mule.encryption.key}">
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+</mule>

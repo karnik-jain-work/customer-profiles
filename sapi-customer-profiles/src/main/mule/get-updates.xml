@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp" xmlns:email="http://www.mulesoft.org/schema/mule/email"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd">
+	<sub-flow name="get-updates-subflow" doc:id="5c7b6cae-6f48-4ead-8e9f-4c7f127805ab" >
+		<logger level="INFO" doc:name="start get-updates-subflow" doc:id="34572685-e051-47c9-b589-f265ab71d2e7" message='"get-updates-subflow started - currentDateTime: #[attributes.headers.currentDateTime] , pastDateTime: #[attributes.headers.pastDateTime] "' />
+		<ee:transform doc:name="set datetime" doc:id="19546af8-a76e-4c41-9bcc-5a4713b4e382">
+			<ee:message>
+			</ee:message>
+			<ee:variables>
+				<ee:set-variable variableName="currentDateTime"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.currentDateTime as LocalDateTime]]></ee:set-variable>
+				<ee:set-variable variableName="pastDateTime"><![CDATA[%dw 2.0
+output application/java
+---
+attributes.headers.pastDateTime as LocalDateTime]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:get-updated doc:name="Get updated objects" doc:id="d6950daf-e30c-4afb-90a3-17d400007b3d" config-ref="Salesforce_Config" startDate="#[vars.pastDateTime]" endDate="#[vars.currentDateTime]" objectType="cust_contact__c" />
+		<ee:transform doc:name="set response payload" doc:id="37837f76-7d9f-4b18-886c-623bd4770712" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End get-updates-subflow" doc:id="f34c32e1-d7e9-4c70-aa2b-aea246f7983a" message='"get-updates-subflow Ended -  payload: #[payload] "' />
+	</sub-flow>
+</mule>

@@ -1,0 +1,13 @@
+# HTTP Request Configuration
+http:
+  host: "localhost"
+  port: "8081"
+  timeout: "300000"
+# Email Configuration
+email:
+  smtp:
+    host: "smtp.gmail.com"
+    port: "587"
+    password: "khpr ohrs nvfr wuew"
+    starttls:
+      required: "true"

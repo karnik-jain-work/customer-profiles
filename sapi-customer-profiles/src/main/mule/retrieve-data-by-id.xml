@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<sub-flow name="retrieve-data-by-id-subflow" doc:id="ea106fb7-77d4-46cc-8cf4-d96f55425b68" >
+		<logger level="INFO" doc:name="start retrieve-data-by-id-subflow" doc:id="99935af9-d4c9-4440-baa7-0ab5fd3e43c4" message='"retrieve-data-by-id-subflow started - payload: #[payload]"' />
+		<ee:transform doc:name="set request payload" doc:id="00440353-8e22-4173-8e3d-d2dfc24bb41c" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	fields: ["Name","account_id__c","birthdate__c","department__c","email__c","mobile__c","address__c","LastModifiedDate"],
+	ids: payload.ids
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:retrieve type="cust_contact__c" doc:name="Retrieve" doc:id="245807ba-2699-4236-88b3-ba7b8085521b" config-ref="Salesforce_Config" />
+		<ee:transform doc:name="set response payload" doc:id="052ca71c-bf41-49da-aac5-2bd5fc58434a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="End retrieve-data-by-id-subflow" doc:id="8c1cbdae-facf-4eaa-a31a-11444252f0c4" message='"retrieve-data-by-id-subflow Ended - payload: #[payload]"' />
+	</sub-flow>
+</mule>

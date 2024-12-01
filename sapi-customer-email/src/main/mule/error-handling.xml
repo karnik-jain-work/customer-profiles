@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+<error-handler name="apikit-error-handler">
+    <!-- Bad Request (400) -->
+    <on-error-propagate type="APIKIT:BAD_REQUEST">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Bad Request",
+  "message": "The request could not be understood or was missing required parameters."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Not Found (404) -->
+    <on-error-propagate type="APIKIT:NOT_FOUND">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Not Found",
+  "message": "The resource you are looking for could not be found. Please check the URL or resource ID."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Method Not Allowed (405) -->
+    <on-error-propagate type="APIKIT:METHOD_NOT_ALLOWED">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Method Not Allowed",
+  "message": "The HTTP method used is not allowed for this resource. Please use an appropriate method."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Not Acceptable (406) -->
+    <on-error-propagate type="APIKIT:NOT_ACCEPTABLE">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Not Acceptable",
+  "message": "The requested resource is capable of generating only content not acceptable according to the Accept headers sent in the request."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Unsupported Media Type (415) -->
+    <on-error-propagate type="APIKIT:UNSUPPORTED_MEDIA_TYPE">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Unsupported Media Type",
+  "message": "The media type of the request is not supported by the server. Please check the Content-Type header."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">415</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Not Implemented (501) -->
+    <on-error-propagate type="APIKIT:NOT_IMPLEMENTED">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Not Implemented",
+  "message": "The requested method is not supported by this API. Please consult the documentation for available methods."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">501</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+<on-error-propagate type="APIKIT:ANY">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Server Error",
+  "message": "The Server is temporarily unavailable."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">500</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+</error-handler>
+
+<error-handler name="http-error-handler">
+    <!-- Bad Request (400) -->
+    <on-error-propagate type="HTTP:BAD_REQUEST">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Bad Request",
+  "message": "Invalid request data."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">400</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Unauthorized (401) -->
+    <on-error-propagate type="HTTP:UNAUTHORIZED">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Unauthorized",
+  "message": "Authentication required."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">401</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Forbidden (403) -->
+    <on-error-propagate type="HTTP:FORBIDDEN">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Forbidden",
+  "message": "Access denied."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">403</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Not Found (404) -->
+    <on-error-propagate type="HTTP:NOT_FOUND">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Not Found",
+  "message": "Requested resource not found."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">404</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Method Not Allowed (405) -->
+    <on-error-propagate type="HTTP:METHOD_NOT_ALLOWED">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Method Not Allowed",
+  "message": "Invalid HTTP method."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">405</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Not Acceptable (406) -->
+    <on-error-propagate type="HTTP:NOT_ACCEPTABLE">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Not Acceptable",
+  "message": "Content type not acceptable."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">406</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Internal Server Error (500) -->
+    <on-error-propagate type="HTTP:INTERNAL_SERVER_ERROR">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Internal Server Error",
+  "message": "Something went wrong, please try again later."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">500</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+
+    <!-- Service Unavailable (503) -->
+    <on-error-propagate type="HTTP:SERVICE_UNAVAILABLE">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Service Unavailable",
+  "message": "The service is temporarily unavailable."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">503</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+<on-error-propagate type="ANY">
+        <ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "error": "Server Error",
+  "message": "The Server is temporarily unavailable."
+}]]></ee:set-payload>
+            </ee:message>
+            <ee:variables>
+                <ee:set-variable variableName="httpStatus">500</ee:set-variable>
+            </ee:variables>
+        </ee:transform>
+    </on-error-propagate>
+</error-handler>
+
+
+</mule>

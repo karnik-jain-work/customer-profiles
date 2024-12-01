@@ -1,0 +1,10 @@
+# Email Configuration
+email:
+  smtp:
+    user: "![IMX/IAPr9L2IoXJiIrD3u7WVHiJNqzAS]"
+
+# AMQP Configuration
+amqp:
+  connection:
+    username: "![X737eTxSAwFTeshshVIZaA==]"
+    password: "![Jx/YV8UvXciuuumm3/dKlAwv8aJrLlF5OIUJGii5WH9YrRnWEI3rCg==]"

@@ -1,0 +1,4 @@
+# Email Configuration
+email:
+  smtp:
+    user: "![IMX/IAPr9L2IoXJiIrD3u7WVHiJNqzAS]"

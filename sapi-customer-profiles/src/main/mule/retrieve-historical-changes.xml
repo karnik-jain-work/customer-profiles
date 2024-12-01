@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<sub-flow name="retrieve-historical-changes-sub-flow" doc:id="3495df95-5745-4a2b-b3c1-2a32e41812bd" >
+		<logger level="INFO" doc:name="start retrieve-historical-changes-sub-flow" doc:id="11809565-1c58-418f-8940-dee563d1fee2" message='"retrieve-historical-changes-sub-flow started query-: #[payload]"' />
+		<ee:transform doc:name="set request payload" doc:id="76a46e2b-913a-40f4-88a5-f85b287573e4" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="query" ><![CDATA[%dw 2.0
+output application/java
+---
+{
+    query:
+        "SELECT ParentId, OldValue, NewValue, Id, Field, DataType, CreatedDate " ++
+        "FROM cust_contact__History " ++
+        "WHERE ParentId IN (" ++
+        ((payload.ids map (id) -> "'" ++ id ++ "'") joinBy ", ") ++
+        ")"
+}
+]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<salesforce:query doc:name="Query" doc:id="a0dcacf0-edc5-4779-86c7-ae908563d4c1" config-ref="Salesforce_Config" target="queryOutput" >
+			<salesforce:salesforce-query ><![CDATA[#[vars.query[0]]]]></salesforce:salesforce-query>
+		</salesforce:query>
+		<ee:transform doc:name="set response payload" doc:id="9bb7804a-8b3f-4fd0-8e3f-913a4e4e0f54" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+vars.queryOutput]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Ended retrieve-historical-changes-sub-flow1" doc:id="a4affc21-18e4-41bd-8896-50e50bf9aac9" message='"retrieve-historical-changes-sub-flow Ended query-: #[vars.queryOutput]"' />
+	</sub-flow>
+</mule>

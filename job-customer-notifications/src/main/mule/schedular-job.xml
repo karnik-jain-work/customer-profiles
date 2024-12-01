@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:email="http://www.mulesoft.org/schema/mule/email" xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/email http://www.mulesoft.org/schema/mule/email/current/mule-email.xsd">
+	<sub-flow name="scatter-gather-route" doc:id="61ee4776-c2bb-4760-992c-dd62c2deeec8" >
+		<scatter-gather doc:name="Scatter-Gather" doc:id="b313b81a-816e-48a2-bee0-c38e24da7939">
+			<route>
+				<flow-ref doc:name="retrieve-historical-changes" doc:id="bcaca776-6684-4a4b-823c-585485c9bff4" name="retrieve-historical-changes-subflow" />
+			</route>
+			<route>
+				<flow-ref doc:name="retrieve-data-by-id-subflow" doc:id="d22344c6-c1fd-40b5-a1b4-b7198bbc29b8" name="retrieve-data-by-id-subflow" />
+			</route>
+		</scatter-gather>
+	</sub-flow>
+	<flow name="schedular-job-flow" doc:id="9b29a4f5-5112-4723-bc98-891081118206" >
+		<scheduler doc:name="Scheduler" doc:id="5faab6db-a2f7-4a9c-a01c-0a7bb6b652db" >
+			<scheduling-strategy >
+				<cron expression='0/30 * * * * ? '/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="started schedular-job-flow" doc:id="7622e1cc-df63-41a7-ac8c-e76aee9b08ba" message='"schedular-job-flow started : #[now()]"' />
+		<ee:transform doc:name="set datetime" doc:id="b27781fc-e541-4e33-8e86-9c5d688697bf" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="currentTime" ><![CDATA[%dw 2.0
+output application/java
+---
+(now() >> "UTC") as LocalDateTime
+]]></ee:set-variable>
+				<ee:set-variable variableName="pastDateTime" ><![CDATA[%dw 2.0
+output application/java
+---
+((now() - |PT30M|) >> "UTC") as LocalDateTime
+ ]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="get-updates-subflow" doc:id="07792cd8-0c89-4b2f-954d-7c1b0e94e9f7" name="get-updates-sf" />
+		<choice doc:name="Choice" doc:id="060ad129-a271-42fb-864b-4bec73208ed1" >
+			<when expression="#[sizeOf(payload.ids)&gt;0]">
+				<flow-ref doc:name="scatter-gather-route" doc:id="1164feca-89c4-443d-aa71-252ee55be7df" name="scatter-gather-route" />
+			</when>
+			<otherwise >
+				<raise-error doc:name="Raise error" doc:id="48d7769f-752d-403f-a8bc-3c94e5603eb1" type="RECORD:NOT_FOUND"/>
+			</otherwise>
+		</choice>
+		<ee:transform doc:name="aggregate response" doc:id="62f4b656-b202-47c7-b03d-383eba21478b" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+var nestedArray=(payload..*payload flatMap $ groupBy ((item, index) -> sizeOf(item)==10))
+---
+nestedArray mapObject((value,key,index)->(
+    ((key as String) match {
+        case result if result is "true" -> "objectData"
+        else->"historicalData"
+    }) 
+):value)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="set payload" doc:id="8f35d808-a8c1-48b3-8c52-0c20321274e6" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[output application/json 
+---
+payload.objectData map((item,index)-> 
+	item ++ {"changed_Fields":(
+		payload.historicalData filter((ParentId)->
+		item.Id contains (ParentId.ParentId)) 
+		groupBy $.Field) pluck((value,key,index)->
+			{
+				(key):value[0]
+			}
+		)}
+)]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<foreach doc:name="For Each" doc:id="3fd57a8c-f662-482e-a87e-5a423e2d5b5f" >
+			<amqp:publish doc:name="Publish" doc:id="6779a42f-0703-4db4-9946-0abc00d048a1" config-ref="AMQP_Config" exchangeName="muleexchange" deliveryMode="PERSISTENT" sendCorrelationId="AUTO" />
+		</foreach>
+		<error-handler ref="http-error-handler" />
+	</flow>
+	<flow name="fetch-emp-profiles-flow" doc:id="f2df5c85-d5a5-4331-8998-98c8d7cab39b" >
+		<amqp:listener doc:name="Listener " doc:id="0c6143bd-6dbf-43bc-8e7d-b47c278c6399" config-ref="AMQP_Config" queueName="mule-q1" ackMode="AUTO" numberOfConsumers="1" />
+		<logger level="INFO" doc:name="Start fetch-emp-profiles-flow" doc:id="05b8797e-bb03-4422-865a-be97766db129" message='"fetch-emp-profiles-flow started : #[payload]"' />
+		<ee:transform doc:name="set email data" doc:id="92a4a4d9-a113-4808-82db-71525db9ecc0" >
+			<ee:message />
+			<ee:variables >
+				<ee:set-variable variableName="emailBody" ><![CDATA[%dw 2.0
+output application/json
+---
+"Dear " ++ payload.Name ++ ",\n\nWe have detected change in your data.\n\nFields Changed: \n" ++ (payload.changed_Fields flatMap ((field, fieldIndex) -> field pluck ((value, key, index) -> (fieldIndex + 1) ++ ". \"" ++ (key as String match {
+      case abc if abc == "account_id__c" -> "accountId"
+      case abc if abc == "birthdate__c" -> "birthdate"
+      case abc if abc == "department__c" -> "department"
+      case abc if abc == "email__c" -> "email"
+      case abc if abc == "mobile__c" -> "mobile"
+      case abc if abc == "address__c" -> "address"
+      case abc if abc == "created" -> "account created"
+      else -> key
+    }) ++ "\" from \"" ++ (if ((key as String) == "birthdate__c")
+      value.OldValue as Date as String
+    else
+      value.OldValue default "draft") ++ "\" to \"" ++ (if ((key as String) == "birthdate__c")
+      value.NewValue as Date as String
+    else
+      value.NewValue default "account created successfully") ++ "\"")) joinBy "\n")]]></ee:set-variable>
+				<ee:set-variable variableName="receiverEmailId" ><![CDATA[%dw 2.0
+output application/json
+---
+payload.emp_email__c]]></ee:set-variable>
+				<ee:set-variable variableName="emailSubject" ><![CDATA[%dw 2.0
+output application/json
+---
+"Alert - Changes Detected in your Customer Contact Account"]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<logger level="INFO" doc:name="Before Email" doc:id="3fcc9b5a-2089-44a1-9a81-286f9bd39ed7" message='"Before Email : #[vars.emailBody]   #[vars.payload.emp_email__c]" ' />
+		<flow-ref doc:name="Flow Reference" doc:id="72657286-8868-4871-87c4-12ddc025ad64" name="send-customer-email" />
+		<logger level="INFO" doc:name="End fetch-emp-profiles-flow" doc:id="7ae90caf-c78c-4982-96ad-df8a0e71788e" message='"fetch-emp-profiles-flow ended :   #[payload]" ' />
+		<error-handler ref="http-error-handler" />
+	</flow>
+</mule>

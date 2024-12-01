@@ -1,0 +1,5 @@
+/.metadata/
+/.mule
+/.tooling
+/job-customer-notifications/src/main/resources/weave
+/sapi-customer-profiles/src/main/resources/weave

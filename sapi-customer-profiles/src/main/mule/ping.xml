@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<sub-flow name="ping-subflow" doc:id="8c622f0a-ef53-4770-814b-e91599b6b750" >
+		<logger level="INFO" doc:name="start ping-subflow" doc:id="851d2900-a065-4078-9d02-c398e5ff2164" message='"ping-subflow started - Time: #[now()]"' />
+		<ee:transform doc:name="set payload">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  message: "Service is up!"
+}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<logger level="INFO" doc:name="End ping-subflow" doc:id="0958a72b-2b56-4854-bccd-d2cc9959d93b" message='"ping-subflow-ended"' />
+	</sub-flow>
+</mule>
